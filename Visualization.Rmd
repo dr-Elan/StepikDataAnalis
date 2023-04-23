@@ -1,0 +1,299 @@
+---
+title: "Визуализация данных"
+author: "Н.В. Артамонов (МГИМО МИД России)"
+output:
+  html_document:
+    df_print: paged
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(corrplot)
+library(plotrix)
+library(ggpubr)
+library(ISLR)
+library(quantmod)
+data(sleep75, package='wooldridge')
+data(diamonds, package='ggplot2')
+data(Wage, package='ISLR')
+sleep75$gender <- factor(sleep75$male, labels = c('female', 'male'))
+```
+
+
+# Pie/Doughnut Chart
+
+## Пример 1
+
+Рассмотрим гендерную переменную из датасета [sleep75](http://meit.mgimo.ru/sites/default/files/sleep75.csv) 
+(всего 706 наблюдений) 
+
+```{r, comment=''}
+gender <- factor(sleep75$male, labels = c('female', 'male'))
+summary(gender)
+```
+
+Круговая диаграмма 2D
+
+```{r, comment=''}
+pie(summary(gender), col=rainbow(2), main="Гендерная переменная")
+```
+
+Круговая диаграмма 3D
+
+```{r, comment=''}
+pie3D(summary(gender), labels = c('female', 'male'), main="Гендерная переменная", explode = 0.1)
+```
+
+## Пример 2
+
+Рассморим данные по доли рынка мобильных телефонов
+
+```{r, comment=''}
+phones <- data.frame("brand" = c("Samsung","Huawei","Apple","Xiaomi","OPPO","Other"),
+            "share" = c(.2090,.1580,.1210,.0930,.0860,.3320))
+print(phones)
+```
+
+Круговая диаграмма 3D
+
+```{r, comment=''}
+pie(phones$share, labels = phones$brand, col=rainbow(length(phones$share)),
+    main='Рынок сотовых телефонов')
+```
+
+Круговая диаграмма 3D
+ 
+```{r, comment=''}
+pie3D(summary(phones$share), labels = phones$brand, main="Рынок сотовых телефонов")
+```
+
+Тоже самое в виде "пончика"
+
+```{r, comment=''}
+ggdonutchart(data=phones, x='share', fill='brand', legend='none')
+```
+
+## Пример 3
+
+Рассмотрим данные по уровню образования
+
+```{r, comment=''}
+summary(Wage$education)
+```
+
+Построим круговую диаграмму
+
+```{r, comment=''}
+pie(summary(Wage$education), col=rainbow(5))
+```
+```{r, comment=''}
+pie3D(summary(Wage$education), labels = levels(Wage$education), explode = 0.2)
+```
+
+
+# Bar Chart/Histogram
+
+## Гистограмма
+
+Рассморим количественные переменные 
+
+- `sleep` (проложительность сна, мин/нед)
+- `totwrk` (занятость, мин/нед)
+
+из датасета [sleep75](http://meit.mgimo.ru/sites/default/files/sleep75.csv) 
+(всего 706 наблюдений)
+Построим гистограмму для `sleep`
+
+```{r, message=FALSE, comment=''}
+qplot(data=sleep75, x=sleep)
+```
+
+Построим гистограмму для занятости `totwrk`
+
+```{r, message=FALSE, comment=''}
+qplot(data=sleep75, x=totwrk)
+```
+
+## Столбчатая диаграмма
+
+Рассмотрим данные по возрасту (описательные статистики)
+
+```{r, comment=''}
+summary(sleep75$age)
+```
+
+Построим Bar Chart для возраста (дискретная переменная)
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(age))+geom_bar()
+```
+
+Построим для гендерной переменной
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(gender))+geom_bar()
+```
+
+## Гистограмма с накоплением
+
+Построим гистограмму с накоплением по возрасту
+
+```{r, message=FALSE, comment=''}
+ggplot(data=sleep75, aes(x=sleep))+geom_histogram(aes(fill=gender))
+```
+
+```{r, message=FALSE, comment=''}
+ggplot(data=sleep75, aes(x=age))+geom_histogram(aes(fill=gender))
+```
+
+## Столбчатая диаграмма с накоплением
+
+Рассмотрим данные по бриллиантам (53940 наблюдений):
+
+- `price` (цена в $)
+- `carat` (вес в каратах)
+- `cut` (качество огранки, упорядоченная качественная переменная с уровнями Fair, Good, Very Good, Premium, Ideal)
+- `clarity` (прозрачность, упорядоченная качественная переменная с уровнями I1 (worst), SI2, SI1, VS2, VS1, VVS2, VVS1, IF (best))
+- `color` (цвет, упорядоченная качественная переменная с уровнями от D (best) до J (worst) )
+
+Простая столбчата диграмма
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(x=cut))+geom_bar()
+```
+
+Построим столбчатые диаграммы с накоплением
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(x=cut))+geom_bar(aes(fill=clarity))
+```
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(x=color))+geom_bar(aes(fill=cut), position='stack')
+```
+
+## Нормированная столбчатая диаграмма
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(x=cut))+geom_bar(aes(fill=clarity), position = 'fill')
+```
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(x=color))+geom_bar(aes(fill=cut), position='fill')
+```
+
+## Столбчатая диаграмма с группировкой
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(x=cut))+geom_bar(aes(fill=clarity), position='dodge')
+```
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(x=color))+geom_bar(aes(fill=cut), position='dodge')
+```
+
+## Линейчатая диаграмма
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(y=cut))+geom_bar()
+```
+
+Вариант с накоплением
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(y=cut))+geom_bar(aes(fill=clarity))
+```
+
+Вариант с группировкой
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(y=cut))+geom_bar(aes(fill=clarity), position='dodge')
+```
+
+# Диаграмма рассеяния
+
+Для данных о проложительности сна рассмотрим график `sleep` vs `totwrk`
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(x=totwrk, y=sleep))+geom_point()
+```
+
+Для данных о бриллиантах: цена vs вес в каратах
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(x=carat, y=price))+geom_point()
+```
+
+Рассморим график `sleep` vs `totwrk`, где цвета точек зависит от гендера
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(x=totwrk, y=sleep))+geom_point(aes(col=gender))
+```
+
+Рассморим график `sleep` vs `totwrk`, где цвета и форма точек зависит от гендера
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(x=totwrk, y=sleep))+geom_point(aes(col=gender, shape=gender))
+```
+
+Рассморим график `sleep` vs `totwrk`, где цвета зависят от возраста, а форма точек зависит от гендера
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(x=totwrk, y=sleep))+geom_point(aes(col=age, shape=gender))
+```
+
+# Линейная диаграмма
+
+Построим график синуса "по точкам": $x\in[-\pi,\pi]$ с шагом $\Delta=0.1$
+
+```{r, comment=''}
+x <- seq(from=-pi, to=pi, by=0.1)
+df <- data.frame(x=x, y=sin(x))
+ggplot(data=df, mapping=aes(x=x,y=y))+geom_line()
+ggplot(data=df, mapping=aes(x=x,y=y))+geom_point()
+```
+
+Построим график ВВП CША (квартальные данные с 1947 г.)
+
+```{r, message=FALSE, comment=''}
+getSymbols(Symbols = 'GDP', src='FRED', return.class='zoo')
+autoplot.zoo(GDP)
+```
+
+Для данных о проложительности сна рассмотрим график `sleep` vs `totwrk`
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(x=totwrk, y=sleep))+geom_line()
+```
+
+# Box Plot
+
+Рассмотрим данные по занятости и продолжительности сна
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(sleep))+geom_boxplot()+ggtitle('Горизонтальная диаграмма')
+```
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(y=sleep))+geom_boxplot(aes(group=gender, col=gender))+
+  ggtitle('Вертикальная диаграмма')
+```
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(totwrk))+geom_boxplot()+ggtitle('Горизонтальная диаграмма')
+```
+
+```{r, comment=''}
+ggplot(data=sleep75, aes(y=totwrk))+geom_boxplot(aes(group=gender, col=gender))+
+  ggtitle('Вертикальная диаграмма')
+```
+
+Рассмотрим данные по цене бриллинатов
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(price))+geom_boxplot()+ggtitle('Горизонтальная диаграмма')
+```
+
+```{r, comment=''}
+ggplot(data=diamonds, aes(y=price))+geom_boxplot(aes(group=cut, col=cut))+
+  ggtitle('Вертикальная диаграмма')
